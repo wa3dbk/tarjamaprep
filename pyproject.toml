@@ -1,0 +1,28 @@
+[project]
+name = "tarjamaprep"
+version = "0.1.0"
+description = "Arabic parallel corpus normalization, cleaning, and augmentation CLI for NMT data preparation"
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8.0",
+    "regex>=2023.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+tarjamaprep = "tarjamaprep.cli:cli"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"tarjamaprep.augment" = ["data/*.yaml"]

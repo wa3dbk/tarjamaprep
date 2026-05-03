@@ -1,0 +1,16 @@
+target_lang: en
+num_workers: 1
+
+# Normalization
+disabled_rules: []
+char_norm_map:
+  "ݢ": "گ"
+protected_words:
+  - "%pw"
+  - "%breath"
+  - "{noise}"
+
+# Cleaning
+max_word_ratio: 3.0
+max_oov_ratio: 0.3
+max_non_lang_ratio: 0.5

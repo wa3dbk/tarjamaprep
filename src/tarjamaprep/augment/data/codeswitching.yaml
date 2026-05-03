@@ -1,0 +1,21 @@
+phrases:
+  - {ar: "من فضلك", en: "please", fr: "s'il vous plaît", de: "bitte", it: "per favore", ru: "пожалуйста", es: "por favor", zh: "请", sw: "tafadhali", tr: "lütfen", arabized: "بليز"}
+  - {ar: "شكراً", en: "thanks", fr: "merci", de: "danke", it: "grazie", ru: "спасибо", es: "gracias", zh: "谢谢", sw: "asante", tr: "teşekkürler", arabized: "ثانكس"}
+  - {ar: "مرحباً", en: "hello", fr: "bonjour", de: "hallo", it: "ciao", ru: "привет", es: "hola", zh: "你好", sw: "habari", tr: "merhaba", arabized: "هالو"}
+  - {ar: "مع السلامة", en: "goodbye", fr: "au revoir", de: "auf Wiedersehen", it: "arrivederci", ru: "до свидания", es: "adiós", zh: "再见", sw: "kwaheri", tr: "hoşça kal", arabized: "باي"}
+  - {ar: "نعم", en: "yes", fr: "oui", de: "ja", it: "sì", ru: "да", es: "sí", zh: "是", sw: "ndiyo", tr: "evet", arabized: "يس"}
+  - {ar: "آسف", en: "sorry", fr: "désolé", de: "entschuldigung", it: "scusa", ru: "извините", es: "lo siento", zh: "对不起", sw: "pole", tr: "özür dilerim", arabized: "سوري"}
+  - {ar: "حسناً", en: "okay", fr: "d'accord", de: "okay", it: "va bene", ru: "хорошо", es: "vale", zh: "好的", sw: "sawa", tr: "tamam", arabized: "أوكي"}
+  - {ar: "بالطبع", en: "of course", fr: "bien sûr", de: "natürlich", it: "certo", ru: "конечно", es: "por supuesto", zh: "当然", sw: "bila shaka", tr: "tabii ki", arabized: "أوف كورس"}
+  - {ar: "لحظة", en: "moment", fr: "un moment", de: "moment", it: "un momento", ru: "момент", es: "un momento", zh: "等一下", sw: "dakika", tr: "bir dakika", arabized: "مومنت"}
+  - {ar: "مشكلة", en: "problem", fr: "problème", de: "Problem", it: "problema", ru: "проблема", es: "problema", zh: "问题", sw: "tatizo", tr: "sorun", arabized: "بروبلم"}
+  - {ar: "جيد", en: "good", fr: "bien", de: "gut", it: "bene", ru: "хорошо", es: "bien", zh: "好", sw: "vizuri", tr: "iyi", arabized: "جود"}
+  - {ar: "ممتاز", en: "excellent", fr: "excellent", de: "ausgezeichnet", it: "eccellente", ru: "отлично", es: "excelente", zh: "太好了", sw: "bora", tr: "mükemmel", arabized: "إكسلنت"}
+  - {ar: "صحيح", en: "correct", fr: "correct", de: "richtig", it: "corretto", ru: "правильно", es: "correcto", zh: "正确", sw: "sahihi", tr: "doğru", arabized: "كوريكت"}
+  - {ar: "بالتأكيد", en: "certainly", fr: "certainement", de: "sicherlich", it: "certamente", ru: "конечно", es: "ciertamente", zh: "当然", sw: "hakika", tr: "kesinlikle", arabized: "شور"}
+  - {ar: "الإنترنت", en: "the internet", fr: "l'internet", de: "das Internet", it: "internet", ru: "интернет", es: "el internet", zh: "互联网", sw: "intaneti", tr: "internet", arabized: "الإنترنت"}
+  - {ar: "الكمبيوتر", en: "the computer", fr: "l'ordinateur", de: "der Computer", it: "il computer", ru: "компьютер", es: "la computadora", zh: "电脑", sw: "kompyuta", tr: "bilgisayar", arabized: "الكمبيوتر"}
+  - {ar: "الهاتف", en: "the phone", fr: "le téléphone", de: "das Telefon", it: "il telefono", ru: "телефон", es: "el teléfono", zh: "手机", sw: "simu", tr: "telefon", arabized: "الفون"}
+  - {ar: "البريد الإلكتروني", en: "email", fr: "e-mail", de: "E-Mail", it: "e-mail", ru: "электронная почта", es: "correo electrónico", zh: "电子邮件", sw: "barua pepe", tr: "e-posta", arabized: "الإيميل"}
+  - {ar: "الاجتماع", en: "the meeting", fr: "la réunion", de: "das Meeting", it: "la riunione", ru: "встреча", es: "la reunión", zh: "会议", sw: "mkutano", tr: "toplantı", arabized: "الميتينج"}
+  - {ar: "المستشفى", en: "the hospital", fr: "l'hôpital", de: "das Krankenhaus", it: "l'ospedale", ru: "больница", es: "el hospital", zh: "医院", sw: "hospitali", tr: "hastane", arabized: "الهوسبيتال"}

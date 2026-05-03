@@ -1,0 +1,18 @@
+organizations:
+  - {ar: "جوجل", en: "Google", fr: "Google", de: "Google", it: "Google", ru: "Гугл", es: "Google", zh: "谷歌", sw: "Google", tr: "Google"}
+  - {ar: "مايكروسوفت", en: "Microsoft", fr: "Microsoft", de: "Microsoft", it: "Microsoft", ru: "Майкрософт", es: "Microsoft", zh: "微软", sw: "Microsoft", tr: "Microsoft"}
+  - {ar: "آبل", en: "Apple", fr: "Apple", de: "Apple", it: "Apple", ru: "Эпл", es: "Apple", zh: "苹果", sw: "Apple", tr: "Apple"}
+  - {ar: "أمازون", en: "Amazon", fr: "Amazon", de: "Amazon", it: "Amazon", ru: "Амазон", es: "Amazon", zh: "亚马逊", sw: "Amazon", tr: "Amazon"}
+  - {ar: "فيسبوك", en: "Facebook", fr: "Facebook", de: "Facebook", it: "Facebook", ru: "Фейсбук", es: "Facebook", zh: "脸书", sw: "Facebook", tr: "Facebook"}
+  - {ar: "تويتر", en: "Twitter", fr: "Twitter", de: "Twitter", it: "Twitter", ru: "Твиттер", es: "Twitter", zh: "推特", sw: "Twitter", tr: "Twitter"}
+  - {ar: "الأمم المتحدة", en: "the United Nations", fr: "les Nations Unies", de: "die Vereinten Nationen", it: "le Nazioni Unite", ru: "ООН", es: "las Naciones Unidas", zh: "联合国", sw: "Umoja wa Mataifa", tr: "Birleşmiş Milletler"}
+  - {ar: "منظمة الصحة العالمية", en: "the World Health Organization", fr: "l'Organisation mondiale de la santé", de: "die Weltgesundheitsorganisation", it: "l'Organizzazione mondiale della sanità", ru: "ВОЗ", es: "la Organización Mundial de la Salud", zh: "世界卫生组织", sw: "Shirika la Afya Duniani", tr: "Dünya Sağlık Örgütü"}
+  - {ar: "الاتحاد الأوروبي", en: "the European Union", fr: "l'Union européenne", de: "die Europäische Union", it: "l'Unione Europea", ru: "Евросоюз", es: "la Unión Europea", zh: "欧盟", sw: "Umoja wa Ulaya", tr: "Avrupa Birliği"}
+  - {ar: "ناسا", en: "NASA", fr: "la NASA", de: "die NASA", it: "la NASA", ru: "НАСА", es: "la NASA", zh: "美国宇航局", sw: "NASA", tr: "NASA"}
+
+products:
+  - {ar: "آيفون", en: "iPhone", fr: "iPhone", de: "iPhone", it: "iPhone", ru: "Айфон", es: "iPhone", zh: "苹果手机", sw: "iPhone", tr: "iPhone"}
+  - {ar: "سامسونج", en: "Samsung", fr: "Samsung", de: "Samsung", it: "Samsung", ru: "Самсунг", es: "Samsung", zh: "三星", sw: "Samsung", tr: "Samsung"}
+  - {ar: "تويوتا", en: "Toyota", fr: "Toyota", de: "Toyota", it: "Toyota", ru: "Тойота", es: "Toyota", zh: "丰田", sw: "Toyota", tr: "Toyota"}
+  - {ar: "مرسيدس", en: "Mercedes", fr: "Mercedes", de: "Mercedes", it: "Mercedes", ru: "Мерседес", es: "Mercedes", zh: "奔驰", sw: "Mercedes", tr: "Mercedes"}
+  - {ar: "بي إم دبليو", en: "BMW", fr: "BMW", de: "BMW", it: "BMW", ru: "БМВ", es: "BMW", zh: "宝马", sw: "BMW", tr: "BMW"}

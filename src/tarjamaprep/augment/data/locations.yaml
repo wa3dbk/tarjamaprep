@@ -1,0 +1,21 @@
+locations:
+  - {ar: "نيويورك", en: "New York", fr: "New York", de: "New York", it: "New York", ru: "Нью-Йорк", es: "Nueva York", zh: "纽约", sw: "New York", tr: "New York"}
+  - {ar: "باريس", en: "Paris", fr: "Paris", de: "Paris", it: "Parigi", ru: "Париж", es: "París", zh: "巴黎", sw: "Paris", tr: "Paris"}
+  - {ar: "لندن", en: "London", fr: "Londres", de: "London", it: "Londra", ru: "Лондон", es: "Londres", zh: "伦敦", sw: "London", tr: "Londra"}
+  - {ar: "برلين", en: "Berlin", fr: "Berlin", de: "Berlin", it: "Berlino", ru: "Берлин", es: "Berlín", zh: "柏林", sw: "Berlin", tr: "Berlin"}
+  - {ar: "روما", en: "Rome", fr: "Rome", de: "Rom", it: "Roma", ru: "Рим", es: "Roma", zh: "罗马", sw: "Roma", tr: "Roma"}
+  - {ar: "موسكو", en: "Moscow", fr: "Moscou", de: "Moskau", it: "Mosca", ru: "Москва", es: "Moscú", zh: "莫斯科", sw: "Moscow", tr: "Moskova"}
+  - {ar: "طوكيو", en: "Tokyo", fr: "Tokyo", de: "Tokio", it: "Tokyo", ru: "Токио", es: "Tokio", zh: "东京", sw: "Tokyo", tr: "Tokyo"}
+  - {ar: "القاهرة", en: "Cairo", fr: "Le Caire", de: "Kairo", it: "Il Cairo", ru: "Каир", es: "El Cairo", zh: "开罗", sw: "Cairo", tr: "Kahire"}
+  - {ar: "دبي", en: "Dubai", fr: "Dubaï", de: "Dubai", it: "Dubai", ru: "Дубай", es: "Dubái", zh: "迪拜", sw: "Dubai", tr: "Dubai"}
+  - {ar: "الرياض", en: "Riyadh", fr: "Riyad", de: "Riad", it: "Riad", ru: "Эр-Рияд", es: "Riad", zh: "利雅得", sw: "Riyadh", tr: "Riyad"}
+  - {ar: "بيروت", en: "Beirut", fr: "Beyrouth", de: "Beirut", it: "Beirut", ru: "Бейрут", es: "Beirut", zh: "贝鲁特", sw: "Beirut", tr: "Beyrut"}
+  - {ar: "دمشق", en: "Damascus", fr: "Damas", de: "Damaskus", it: "Damasco", ru: "Дамаск", es: "Damasco", zh: "大马士革", sw: "Damascus", tr: "Şam"}
+  - {ar: "بغداد", en: "Baghdad", fr: "Bagdad", de: "Bagdad", it: "Baghdad", ru: "Багдад", es: "Bagdad", zh: "巴格达", sw: "Baghdad", tr: "Bağdat"}
+  - {ar: "الدار البيضاء", en: "Casablanca", fr: "Casablanca", de: "Casablanca", it: "Casablanca", ru: "Касабланка", es: "Casablanca", zh: "卡萨布兰卡", sw: "Casablanca", tr: "Kazablanka"}
+  - {ar: "تونس", en: "Tunis", fr: "Tunis", de: "Tunis", it: "Tunisi", ru: "Тунис", es: "Túnez", zh: "突尼斯", sw: "Tunis", tr: "Tunus"}
+  - {ar: "الجزائر", en: "Algiers", fr: "Alger", de: "Algier", it: "Algeri", ru: "Алжир", es: "Argel", zh: "阿尔及尔", sw: "Algiers", tr: "Cezayir"}
+  - {ar: "واشنطن", en: "Washington", fr: "Washington", de: "Washington", it: "Washington", ru: "Вашингтон", es: "Washington", zh: "华盛顿", sw: "Washington", tr: "Washington"}
+  - {ar: "مدريد", en: "Madrid", fr: "Madrid", de: "Madrid", it: "Madrid", ru: "Мадрид", es: "Madrid", zh: "马德里", sw: "Madrid", tr: "Madrid"}
+  - {ar: "إسطنبول", en: "Istanbul", fr: "Istanbul", de: "Istanbul", it: "Istanbul", ru: "Стамбул", es: "Estambul", zh: "伊斯坦布尔", sw: "Istanbul", tr: "İstanbul"}
+  - {ar: "مكة", en: "Mecca", fr: "La Mecque", de: "Mekka", it: "La Mecca", ru: "Мекка", es: "La Meca", zh: "麦加", sw: "Makka", tr: "Mekke"}
