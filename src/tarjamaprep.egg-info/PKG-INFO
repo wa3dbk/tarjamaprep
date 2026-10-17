@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: tarjamaprep
+Version: 0.1.0
+Summary: Arabic parallel corpus normalization, cleaning, and augmentation CLI for NMT data preparation
+Requires-Python: >=3.9
+License-File: LICENSE
+Requires-Dist: click>=8.0
+Requires-Dist: regex>=2023.0
+Requires-Dist: pyyaml>=6.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Dynamic: license-file

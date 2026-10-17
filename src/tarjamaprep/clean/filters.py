@@ -80,6 +80,41 @@ class NumberConsistencyFilter(CleaningFilter):
 
 
 @register
+class CurrencyPercentConsistencyFilter(CleaningFilter):
+    """Drop pairs where %, $, or € in the target with a number lacks a
+    matching sign or Arabic equivalent word on the source side.
+
+    English `%` must be matched on the Arabic source by `%` or one of
+    (بالمية، بالمائة، بالميا، مائوية). Similarly `$` must be matched by
+    `$` or (دولار، دولارات); `€` by `€` or (أورو، يورو).
+    """
+    name = "currency_percent_check"
+    order = 35
+
+    _percent_words = ("بالمية", "بالمائة", "بالميا", "مائوية")
+    _dollar_words = ("دولار", "دولارات")
+    _euro_words = ("أورو", "يورو")
+
+    _percent_in_num = regex.compile(r"\d\s*%|%\s*\d")
+    _dollar_in_num = regex.compile(r"\$\s*\d|\d\s*\$")
+    _euro_in_num = regex.compile(r"€\s*\d|\d\s*€")
+
+    def should_drop(self, pair: SentencePair) -> str | None:
+        src = pair.source
+        tgt = pair.target
+        if self._percent_in_num.search(tgt):
+            if "%" not in src and not any(w in src for w in self._percent_words):
+                return "percent_missing_in_source"
+        if self._dollar_in_num.search(tgt):
+            if "$" not in src and not any(w in src for w in self._dollar_words):
+                return "dollar_missing_in_source"
+        if self._euro_in_num.search(tgt):
+            if "€" not in src and not any(w in src for w in self._euro_words):
+                return "euro_missing_in_source"
+        return None
+
+
+@register
 class NonLanguageFilter(CleaningFilter):
     """Drop pairs where majority of characters are not from expected scripts."""
     name = "non_lang"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tarjamaprep.normalize.common import (
+    DigitGroupCollation,
     EmojiRemoval,
     ExcessiveRepetition,
     NumeralConversion,
@@ -21,6 +22,21 @@ def test_excessive_repetition():
     ctx = {}
     assert rule.apply("hellooooo", Side.TARGET, ctx) == "helloo"
     assert rule.apply("ااااااا", Side.SOURCE, ctx) == "اا"
+
+
+def test_excessive_repetition_preserves_digits():
+    rule = ExcessiveRepetition()
+    ctx = {}
+    assert rule.apply("25000", Side.TARGET, ctx) == "25000"
+    assert rule.apply("1000000", Side.TARGET, ctx) == "1000000"
+
+
+def test_digit_group_collation():
+    rule = DigitGroupCollation()
+    ctx = {}
+    assert rule.apply("1 000 000", Side.TARGET, ctx) == "1000000"
+    assert rule.apply("I have 5 000 apples", Side.TARGET, ctx) == "I have 5000 apples"
+    assert rule.apply("no digits here", Side.TARGET, ctx) == "no digits here"
 
 
 def test_numeral_conversion_eastern():

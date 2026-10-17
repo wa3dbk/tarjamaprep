@@ -91,18 +91,18 @@ class CharNormalization(NormalizationRule):
 
 @register
 class ArabicPunctuation(NormalizationRule):
-    """Normalize punctuation to Arabic equivalents on source side."""
+    """Normalize punctuation to Arabic equivalents on source side.
+
+    Commas between digits (thousands separators like 1,000) are preserved.
+    """
     name = "ar_punctuation"
     sides = (Side.SOURCE,)
     order = 50
 
-    _map = {
-        ";": "\u061B",  # ؛
-        "?": "\u061F",  # ؟
-        ",": "\u060C",  # ،
-    }
+    _comma_pattern = regex.compile(r"(?<!\d),|,(?!\d)")
 
     def apply(self, text: str, side: Side, context: dict) -> str:
-        for latin, arabic in self._map.items():
-            text = text.replace(latin, arabic)
+        text = text.replace(";", "\u061B")
+        text = text.replace("?", "\u061F")
+        text = self._comma_pattern.sub("\u060C", text)
         return text

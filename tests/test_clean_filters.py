@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tarjamaprep.clean.filters import (
+    CurrencyPercentConsistencyFilter,
     EmptyLineFilter,
     WordCountRatioFilter,
     PunctuationMatchFilter,
@@ -41,6 +42,27 @@ def test_number_consistency():
     assert f.should_drop(_pair("I have 3 cats", "عندي 3 قطط")) is None
     assert f.should_drop(_pair("I have 3 cats", "عندي 5 قطط")) is not None
     assert f.should_drop(_pair("no numbers", "no numbers")) is None
+
+
+def test_currency_percent_consistency_percent_word():
+    f = CurrencyPercentConsistencyFilter()
+    assert f.should_drop(_pair("نسبة 50 بالمائة", "50% of them")) is None
+    assert f.should_drop(_pair("نسبة 50%", "50% of them")) is None
+    assert f.should_drop(_pair("خمسون من الناس", "50% of them")) is not None
+
+
+def test_currency_percent_consistency_dollar_euro():
+    f = CurrencyPercentConsistencyFilter()
+    assert f.should_drop(_pair("يكلف 50 دولار", "costs $50")) is None
+    assert f.should_drop(_pair("يكلف 50", "costs $50")) is not None
+    assert f.should_drop(_pair("50 يورو", "€50")) is None
+    assert f.should_drop(_pair("50 شيء", "€50")) is not None
+
+
+def test_currency_percent_no_number_no_check():
+    f = CurrencyPercentConsistencyFilter()
+    # No digit next to %, filter should not trigger
+    assert f.should_drop(_pair("مرحبا", "hello %pw world")) is None
 
 
 def test_non_language_filter():

@@ -54,15 +54,31 @@ class UselessSymbolRemoval(NormalizationRule):
 
 @register
 class ExcessiveRepetition(NormalizationRule):
-    """Collapse 3+ consecutive identical characters to 2."""
+    """Collapse 3+ consecutive identical non-digit characters to 2.
+
+    Digits are excluded so numbers like 25000 or 1000000 keep their zeros.
+    """
     name = "common_repetition"
     sides = (Side.SOURCE, Side.TARGET)
     order = 70
 
-    _pattern = regex.compile(r"(.)\1{2,}")
+    _pattern = regex.compile(r"(\D)\1{2,}")
 
     def apply(self, text: str, side: Side, context: dict) -> str:
         return self._pattern.sub(r"\1\1", text)
+
+
+@register
+class DigitGroupCollation(NormalizationRule):
+    """Collate digit groups separated by whitespace: 1 000 000 → 1000000."""
+    name = "common_digit_collate"
+    sides = (Side.SOURCE, Side.TARGET)
+    order = 68
+
+    _pattern = regex.compile(r"(\d)\s+(?=\d)")
+
+    def apply(self, text: str, side: Side, context: dict) -> str:
+        return self._pattern.sub(r"\1", text)
 
 
 @register

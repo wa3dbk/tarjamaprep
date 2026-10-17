@@ -48,6 +48,15 @@ def test_arabic_punctuation():
     assert result == "hello\u061B world\u061F ok\u060C"
 
 
+def test_arabic_punctuation_preserves_thousands_comma():
+    rule = ArabicPunctuation()
+    ctx = {}
+    assert rule.apply("1,000", Side.SOURCE, ctx) == "1,000"
+    assert rule.apply("1,000,000", Side.SOURCE, ctx) == "1,000,000"
+    # trailing or leading non-digit side still converts
+    assert rule.apply("1, hello", Side.SOURCE, ctx) == "1\u060C hello"
+
+
 def test_protected_words_roundtrip():
     protect = ProtectedWords()
     restore = RestoreProtectedWords()
