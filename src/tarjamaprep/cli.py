@@ -102,10 +102,13 @@ def normalize(source, target, output_source, output_target, target_lang,
 @click.option("--ignore-non-lang", is_flag=True, help="Disable non_lang filter.")
 @click.option("--permissive", is_flag=True,
               help="Shortcut: enable all --ignore-* flags for internal/verified data.")
+@click.option("--report/--no-report", default=True,
+              help="Print a final report table (totals + drop reasons). Default: on.")
 def clean(source, target, output_source, output_target, target_lang,
           config_path, workers, max_ratio, max_oov_ratio, oov_wordlist,
           reject_log, disable_filter, ignore_word_ratio, ignore_number_check,
-          ignore_punct_match, ignore_currency_percent, ignore_non_lang, permissive):
+          ignore_punct_match, ignore_currency_percent, ignore_non_lang,
+          permissive, report):
     """Clean parallel corpus by filtering sentence pairs."""
     disabled = set(disable_filter)
     if permissive:
@@ -138,11 +141,9 @@ def clean(source, target, output_source, output_target, target_lang,
 
     click.echo(f"Kept {stats.kept}/{stats.total} pairs, "
                f"dropped {stats.dropped} in {stats.elapsed_seconds:.1f}s")
-    if stats.drop_reasons:
-        click.echo("Drop reasons:")
-        for reason, count in sorted(stats.drop_reasons.items(),
-                                     key=lambda x: -x[1]):
-            click.echo(f"  {reason}: {count}")
+    if report:
+        from tarjamaprep.report import print_clean_report, section_from_stats
+        print_clean_report([section_from_stats(stats, label=source.name)])
     click.echo(f"Output: {output_source}, {output_target}")
 
 

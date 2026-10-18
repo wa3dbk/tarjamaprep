@@ -8,7 +8,7 @@
 
 - **Normalize**: Rule-based text normalization for Arabic and target languages (script fixes, numeral conversion, punctuation collation, emoji/symbol removal, digit-group collation, special-token stripping, terminal-punctuation alignment across pairs)
 - **Single-file mode**: Normalize a single Arabic or target-language file independently
-- **Clean**: Filter sentence pairs by quality criteria (word ratio, punctuation match, number consistency, currency/percent consistency, OOV detection) with per-filter `--ignore-*` escape hatches for internal/verified data
+- **Clean**: Filter sentence pairs by quality criteria (word ratio, punctuation match, number consistency, currency/percent consistency, OOV detection) with per-filter `--ignore-*` escape hatches for verified data
 - **Augment**: Generate synthetic training pairs via name substitution, code-switching, and entity replacement
 - **Extensible**: Add custom rules, filters, strategies, and languages via a decorator-based plugin system
 - **Parallel processing**: Multiprocessing support for large corpora
@@ -160,7 +160,8 @@ tarjamaprep clean SOURCE TARGET -os OUTPUT_SOURCE -ot OUTPUT_TARGET [OPTIONS]
 | `--ignore-punct-match` | Shortcut: disable the `punct_match` filter (useful when the pipeline's terminal-punctuation alignment is enough) |
 | `--ignore-currency-percent` | Shortcut: disable the `currency_percent_check` filter |
 | `--ignore-non-lang` | Shortcut: disable the `non_lang` filter (useful for short Arabic words like `آ`) |
-| `--permissive` | Enable all of the `--ignore-*` flags above. Intended for internal / verified corpora where strict filtering drops legitimate pairs. |
+| `--permissive` | Enable all of the `--ignore-*` flags above. Intended for verified corpora where strict filtering drops legitimate pairs. |
+| `--report / --no-report` | Print a final report table (totals + drop reasons). Default: **on**. |
 
 **Examples:**
 ```bash
@@ -179,7 +180,7 @@ tarjamaprep clean norm.ar norm.de -os clean.ar -ot clean.de \
 tarjamaprep clean norm.ar norm.zh -os clean.ar -ot clean.zh \
     --disable-filter number_check --max-ratio 4.0
 
-# Internal / verified corpus: relax all heuristic filters, keep only empty_line + oov
+# Verified corpus: relax all heuristic filters, keep only empty_line + oov
 tarjamaprep clean norm.ar norm.en -os clean.ar -ot clean.en --permissive
 ```
 
@@ -190,6 +191,29 @@ line 23: punct_mismatch
 line 47: number_mismatch:src={'3'},tgt={'5'}
 line 89: non_lang:source:0.67
 ```
+
+**Report table:**
+
+Every `tarjamaprep clean` run finishes with a report showing total pairs in, kept, dropped, keep rate, and a breakdown of **drop reasons** (sorted by count, with each reason's share of total drops). This is enabled by default; pass `--no-report` to suppress it.
+
+```
+========================================================================
+REPORT
+========================================================================
+INPUT              TOTAL        KEPT     DROPPED    KEEP%
+------------------------------------------------------------------------
+norm.ar       1,044,304   1,027,529      16,775   98.39%
+
+DROP REASONS
+----------------------------------------
+  empty_line           8,114   48.37%
+  non_lang             4,221   25.16%
+  word_ratio           2,418   14.42%
+  punct_mismatch       2,022   12.05%
+========================================================================
+```
+
+The same formatter is reusable from Python via `tarjamaprep.report` (`ReportSection`, `format_clean_report`, `print_clean_report`, `section_from_stats`) for driving the pipeline over multiple files and emitting a per-file table + aggregate totals.
 
 ---
 
@@ -576,22 +600,6 @@ src/tarjamaprep/
 - Plain text files in UTF-8 encoding
 - One sentence per line
 - For parallel mode: source and target files must have the same number of lines
-
----
-
-## Reference: `internal/filter_internal.py`
-
-The `internal/` directory contains a reference wrapper that drives the normalize + clean pipeline on parallel TSV / TXT corpora and layers on a few dataset-specific checks that are intentionally kept out of the library (strict Arabic+Latin script, token-count window, cross-file deduplication, English contraction stitching).
-
-```bash
-# Edit WORKERS / paths at the top of the script if needed
-./internal/run.sh
-
-# Pass through any flag that filter_internal.py accepts
-./internal/run.sh --max-lines 10000 --removal-token '<laughter>'
-```
-
-Use it as a template when you want tarjamaprep's library plus a few corpus-specific rules without forking the tool itself.
 
 ---
 
