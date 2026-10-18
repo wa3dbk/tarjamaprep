@@ -234,6 +234,7 @@ tarjamaprep augment SOURCE TARGET -os OUTPUT_SOURCE -ot OUTPUT_TARGET [OPTIONS]
 | `-ot`, `--output-target` | Output path for augmented target (required) |
 | `-l`, `--target-lang` | Target language (default: `en`) |
 | `--strategy` | Strategy to apply (repeatable; default: all). Values: `names`, `codeswitching`, `entities`, `ar_strip_punct`, `ar_dialect_shift` |
+| `--disable-strategy` | Strategy to disable (repeatable). Must not overlap with `--strategy`. |
 | `--count` | Number of augmented variants per pair per strategy (default: 1) |
 | `--seed` | Random seed for reproducibility |
 | `--include-original/--no-original` | Include original pairs in output (default: yes) |
@@ -261,6 +262,10 @@ tarjamaprep augment clean.ar clean.en -os aug.ar -ot aug.en \
 # Only synthetic pairs (no originals)
 tarjamaprep augment clean.ar clean.en -os synthetic.ar -ot synthetic.en \
     --no-original --count 5 --seed 123
+
+# All strategies except ar_dialect_shift
+tarjamaprep augment clean.ar clean.en -os aug.ar -ot aug.en \
+    --disable-strategy ar_dialect_shift
 ```
 
 ---

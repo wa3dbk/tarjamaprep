@@ -175,6 +175,8 @@ def clean(source, target, output_source, output_target, target_lang,
 @click.option("-w", "--workers", type=int, default=1, help="Number of parallel workers.")
 @click.option("--strategy", "strategies", multiple=True,
               help="Strategy to apply (can repeat). Default: all.")
+@click.option("--disable-strategy", "disabled_strategies", multiple=True,
+              help="Strategy to disable (can repeat). Cannot overlap with --strategy.")
 @click.option("--count", type=int, default=1,
               help="Number of augmented variants per pair per strategy.")
 @click.option("--seed", type=int, default=None, help="Random seed for reproducibility.")
@@ -193,10 +195,36 @@ def clean(source, target, output_source, output_target, target_lang,
 @click.option("--dialect-shift-ratio", type=float, default=None,
               help="Sampling ratio for ar_dialect_shift strategy (default: 0.3).")
 def augment(source, target, output_source, output_target, target_lang,
-            config_path, workers, strategies, count, seed, include_original,
-            arabize_ratio, names_file, entities_file, codeswitching_file,
-            strip_punct_ratio, dialect_shift_ratio):
+            config_path, workers, strategies, disabled_strategies, count,
+            seed, include_original, arabize_ratio, names_file, entities_file,
+            codeswitching_file, strip_punct_ratio, dialect_shift_ratio):
     """Augment parallel corpus with synthetic sentence pairs."""
+    from tarjamaprep.augment import list_all_strategies
+
+    selected = set(strategies)
+    disabled = set(disabled_strategies)
+    conflict = selected & disabled
+    if conflict:
+        raise click.UsageError(
+            f"Strategies cannot be both enabled and disabled: "
+            f"{', '.join(sorted(conflict))}"
+        )
+
+    known = {s.name for s in list_all_strategies()}
+    unknown = (selected | disabled) - known
+    if unknown:
+        raise click.UsageError(
+            f"Unknown strategy name(s): {', '.join(sorted(unknown))}. "
+            f"Run `tarjamaprep list-strategies` to see available names."
+        )
+
+    if selected:
+        resolved_names = sorted(selected)
+    elif disabled:
+        resolved_names = [n for n in known if n not in disabled]
+    else:
+        resolved_names = None
+
     cfg = load_config(
         config_path,
         target_lang=TargetLang(target_lang),
@@ -206,7 +234,7 @@ def augment(source, target, output_source, output_target, target_lang,
     from tarjamaprep.pipeline import run_augment
     stats = run_augment(
         source, target, output_source, output_target, cfg,
-        strategy_names=list(strategies) if strategies else None,
+        strategy_names=resolved_names,
         count=count,
         seed=seed,
         include_original=include_original,

@@ -73,3 +73,52 @@ def test_list_filters():
     assert result.exit_code == 0
     assert "word_ratio" in result.output
     assert "oov_filter" in result.output
+
+
+def test_augment_strategy_disable_conflict():
+    runner = CliRunner()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        src, tgt = _write_files(["مرحبا"], ["Hello"], tmpdir)
+        out_src = Path(tmpdir) / "out.ar"
+        out_tgt = Path(tmpdir) / "out.en"
+        result = runner.invoke(cli, [
+            "augment", str(src), str(tgt),
+            "-os", str(out_src), "-ot", str(out_tgt),
+            "--strategy", "names", "--disable-strategy", "names",
+        ])
+        assert result.exit_code != 0
+        assert "both enabled and disabled" in result.output
+        assert "names" in result.output
+
+
+def test_augment_unknown_strategy():
+    runner = CliRunner()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        src, tgt = _write_files(["مرحبا"], ["Hello"], tmpdir)
+        out_src = Path(tmpdir) / "out.ar"
+        out_tgt = Path(tmpdir) / "out.en"
+        result = runner.invoke(cli, [
+            "augment", str(src), str(tgt),
+            "-os", str(out_src), "-ot", str(out_tgt),
+            "--disable-strategy", "nope",
+        ])
+        assert result.exit_code != 0
+        assert "Unknown strategy" in result.output
+
+
+def test_augment_disable_strategy_runs():
+    runner = CliRunner()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        src, tgt = _write_files(["مرحبا"], ["Hello"], tmpdir)
+        out_src = Path(tmpdir) / "out.ar"
+        out_tgt = Path(tmpdir) / "out.en"
+        result = runner.invoke(cli, [
+            "augment", str(src), str(tgt),
+            "-os", str(out_src), "-ot", str(out_tgt),
+            "--disable-strategy", "ar_dialect_shift",
+            "--disable-strategy", "ar_strip_punct",
+            "--seed", "0",
+        ])
+        assert result.exit_code == 0, result.output
+        assert "ar_dialect_shift" not in result.output
+        assert "ar_strip_punct" not in result.output
