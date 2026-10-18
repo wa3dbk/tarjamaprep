@@ -6,9 +6,9 @@
 
 ## Features
 
-- **Normalize**: Rule-based text normalization for Arabic and target languages (script fixes, numeral conversion, punctuation, emoji/symbol removal)
+- **Normalize**: Rule-based text normalization for Arabic and target languages (script fixes, numeral conversion, punctuation collation, emoji/symbol removal, digit-group collation, special-token stripping, terminal-punctuation alignment across pairs)
 - **Single-file mode**: Normalize a single Arabic or target-language file independently
-- **Clean**: Filter sentence pairs by quality criteria (word ratio, punctuation match, number consistency, OOV detection)
+- **Clean**: Filter sentence pairs by quality criteria (word ratio, punctuation match, number consistency, currency/percent consistency, OOV detection) with per-filter `--ignore-*` escape hatches for internal/verified data
 - **Augment**: Generate synthetic training pairs via name substitution, code-switching, and entity replacement
 - **Extensible**: Add custom rules, filters, strategies, and languages via a decorator-based plugin system
 - **Parallel processing**: Multiprocessing support for large corpora
@@ -95,12 +95,17 @@ tarjamaprep normalize SOURCE -os OUTPUT [OPTIONS]
 | `-c`, `--config` | Path to YAML configuration file |
 | `-w`, `--workers` | Number of parallel workers (default: 1) |
 | `--disable-rule` | Disable a specific rule by name (repeatable) |
+| `--removal-token` | Extra special token to strip (repeatable). Added on top of the defaults (`<unk>`, `{noise}`, `%breath`, `%pwm`, `%pw`). The `common_special_tokens` rule also strips the `%` prefix from any remaining `%word` token. |
 
 **Examples:**
 
 ```bash
 # Parallel mode: normalize both sides
 tarjamaprep normalize input.ar input.en -os norm.ar -ot norm.en
+
+# Add dataset-specific special tokens to strip during normalization
+tarjamaprep normalize input.ar input.en -os norm.ar -ot norm.en \
+    --removal-token '<laughter>' --removal-token '%yeah'
 
 # Single-file mode: normalize an Arabic file
 tarjamaprep normalize raw_arabic.txt -os normalized_arabic.txt
@@ -150,6 +155,12 @@ tarjamaprep clean SOURCE TARGET -os OUTPUT_SOURCE -ot OUTPUT_TARGET [OPTIONS]
 | `--oov-wordlist` | Path to vocabulary file for OOV filtering |
 | `--reject-log` | Write rejected pairs info to this file |
 | `--disable-filter` | Disable a specific filter by name (repeatable) |
+| `--ignore-word-ratio` | Shortcut: disable the `word_ratio` filter |
+| `--ignore-number-check` | Shortcut: disable the `number_check` filter (e.g., when Arabic uses word-form numbers like `ربعين` for `40`) |
+| `--ignore-punct-match` | Shortcut: disable the `punct_match` filter (useful when the pipeline's terminal-punctuation alignment is enough) |
+| `--ignore-currency-percent` | Shortcut: disable the `currency_percent_check` filter |
+| `--ignore-non-lang` | Shortcut: disable the `non_lang` filter (useful for short Arabic words like `آ`) |
+| `--permissive` | Enable all of the `--ignore-*` flags above. Intended for internal / verified corpora where strict filtering drops legitimate pairs. |
 
 **Examples:**
 ```bash
@@ -167,6 +178,9 @@ tarjamaprep clean norm.ar norm.de -os clean.ar -ot clean.de \
 # Chinese: use higher ratio (fewer words per sentence in Chinese)
 tarjamaprep clean norm.ar norm.zh -os clean.ar -ot clean.zh \
     --disable-filter number_check --max-ratio 4.0
+
+# Internal / verified corpus: relax all heuristic filters, keep only empty_line + oov
+tarjamaprep clean norm.ar norm.en -os clean.ar -ot clean.en --permissive
 ```
 
 **Reject log format:**
@@ -241,20 +255,25 @@ Rules are applied in order (lower = runs first):
 
 | Rule | Order | Side | Description |
 |------|-------|------|-------------|
-| `ar_protected` | 10 | both | Protect tagged tokens (`%pw`, `%breath`, `{noise}`) from modification |
+| `common_special_tokens` | 5 | both | Strip configured special tokens (`<unk>`, `{noise}`, `%breath`, `%pwm`, `%pw` by default; extend via `--removal-token` or YAML `removal_tokens`). Also drops the leading `%` from any remaining `%word` token (`%yeah` → `yeah`). |
+| `ar_protected` | 10 | both | Protect configured tokens (`protected_words`) from modification. Empty by default. |
 | `ar_ta_marbuta` | 20 | source | Split concatenated words at ta marbuta: `الحلقةالأولى` → `الحلقة الأولى` |
 | `lat_whitespace` | 20 | target | Normalize unicode whitespace |
 | `ar_waw_collate` | 30 | source | Collate standalone و to next word: `و قال` → `وقال` |
 | `ar_char_norm` | 40 | source | Normalize characters via configurable mapping (e.g., `ݢ` → `گ`) |
-| `ar_punctuation` | 50 | source | Convert to Arabic punctuation: `;` → `؛`, `?` → `؟`, `,` → `،` |
+| `ar_punctuation` | 50 | source | Convert to Arabic punctuation: `;` → `؛`, `?` → `؟`, `,` → `،` (commas between digits are left alone so thousands separators survive) |
 | `common_emoji` | 60 | both | Remove all emoji characters |
 | `common_symbols` | 65 | both | Remove decorative symbols (★, ♦, ©, ™, etc.) |
-| `common_repetition` | 70 | both | Collapse 3+ repeated identical characters to 2 |
+| `common_digit_collate` | 68 | both | Collate space-separated digit groups: `1 000 000` → `1000000` |
+| `common_repetition` | 70 | both | Collapse 3+ repeated identical **non-digit** characters to 2 (digits like `25000`, `1000000` are preserved) |
 | `common_numerals` | 75 | both | Convert Eastern Arabic (`٠-٩`) and Persian (`۰-۹`) numerals to `0-9` |
 | `common_punctuation` | 80 | both | Normalize quotes (`« » „ "` → `"`), drop brackets/parentheses |
+| `common_punct_collapse` | 85 | both | Collapse runs of consecutive punctuation to the first non-`.` mark: `?!?.` → `?`, `??` → `?`, `!!,` → `!`, `...` → `.` (Arabic marks `؟ ، ؛` are collapsed the same way) |
 | `common_whitespace` | 90 | both | Normalize whitespace and trim |
 | `common_final_filter` | 200 | both | Strip any character not in allowed set |
 | `ar_restore` | 999 | both | Restore protected word placeholders |
+
+In addition to per-side rules, after normalization the pipeline runs a **pair-level terminal-punctuation alignment** step: if one side ends with `. ! ?` (or Arabic `؟`) and the other does not, the mark is copied to the missing side (`?` ↔ `؟` is mapped between Latin and Arabic). This keeps speech-transcript Arabic (which often lacks `.?!`) from being dropped by the `punct_match` filter.
 
 **Allowed characters after normalization:** Arabic, Latin, Cyrillic, CJK, digits, currency symbols ($, €, £, ¥, ₹, ₽, ¢), %, °, and basic punctuation (`. , ; : ? ! " ' -`). Arabic punctuation (`، ؛ ؟`) is preserved on the source side.
 
@@ -268,7 +287,8 @@ Rules are applied in order (lower = runs first):
 | `word_ratio` | Drop if word count ratio exceeds threshold | `--max-ratio` (default: 3.0) |
 | `punct_match` | Drop if final punctuation doesn't match | — |
 | `number_check` | Drop if digit sequences differ between source/target | — |
-| `non_lang` | Drop if majority of characters are non-language script | threshold: 0.5 |
+| `currency_percent_check` | Drop if the target has `%`, `$`, or `€` next to a digit but the Arabic source lacks the symbol **and** its word equivalent (`%` ↔ `بالمية / بالمائة / بالميا / مائوية`, `$` ↔ `دولار / دولارات`, `€` ↔ `أورو / يورو`) | — |
+| `non_lang` | Drop if majority of characters are non-language script (punctuation is treated as language-neutral, so short Arabic words like `آ . .` pass) | threshold: 0.5 |
 | `oov_filter` | Drop if too many out-of-vocabulary words | `--oov-wordlist`, `--max-oov-ratio` |
 
 ---
@@ -319,11 +339,20 @@ disabled_rules: []
 char_norm_map:
   "ݢ": "گ"
   "ٱ": "ا"
-protected_words:
-  - "%pw"
-  - "%breath"
+# Tokens stripped during normalization by `common_special_tokens`.
+# If omitted, the built-in defaults are used: <unk>, {noise}, %breath, %pwm, %pw.
+# Any value here REPLACES the defaults; CLI --removal-token flags are additive.
+removal_tokens:
+  - "<unk>"
   - "{noise}"
+  - "%breath"
+  - "%pwm"
+  - "%pw"
   - "<laughter>"
+# Protected words are kept verbatim through normalization. Empty by default
+# — anything you used to protect here (e.g. %pw) is now stripped via
+# removal_tokens instead.
+protected_words: []
 
 # Cleaning
 max_word_ratio: 3.0
@@ -547,6 +576,22 @@ src/tarjamaprep/
 - Plain text files in UTF-8 encoding
 - One sentence per line
 - For parallel mode: source and target files must have the same number of lines
+
+---
+
+## Reference: `internal/filter_internal.py`
+
+The `internal/` directory contains a reference wrapper that drives the normalize + clean pipeline on parallel TSV / TXT corpora and layers on a few dataset-specific checks that are intentionally kept out of the library (strict Arabic+Latin script, token-count window, cross-file deduplication, English contraction stitching).
+
+```bash
+# Edit WORKERS / paths at the top of the script if needed
+./internal/run.sh
+
+# Pass through any flag that filter_internal.py accepts
+./internal/run.sh --max-lines 10000 --removal-token '<laughter>'
+```
+
+Use it as a template when you want tarjamaprep's library plus a few corpus-specific rules without forking the tool itself.
 
 ---
 
