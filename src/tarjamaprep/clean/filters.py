@@ -140,6 +140,22 @@ class NonLanguageFilter(CleaningFilter):
 
 
 @register
+class ForeignArabicCharsFilter(CleaningFilter):
+    """Drop pairs whose source contains Arabic-script letters that are not
+    standard Arabic (Persian/Urdu/Sindhi variants: ڑ ں ھ ک ی)."""
+    name = "foreign_arabic"
+    order = 45
+
+    _foreign_chars = frozenset("\u0691\u06BA\u06BE\u06A9\u06CC")  # ڑ ں ھ ک ی
+
+    def should_drop(self, pair: SentencePair) -> str | None:
+        hits = set(c for c in pair.source if c in self._foreign_chars)
+        if hits:
+            return f"foreign_arabic:{''.join(sorted(hits))}"
+        return None
+
+
+@register
 class OOVFilter(CleaningFilter):
     """Drop pairs with too many out-of-vocabulary words."""
     name = "oov_filter"

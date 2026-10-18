@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 import uuid
 
 import regex
@@ -9,6 +10,15 @@ from tarjamaprep.normalize.registry import register
 from tarjamaprep.types import Side
 
 _PLACEHOLDER_PREFIX = "\x00PW"
+
+_BIDI_STRIP_CHARS = (
+    "\u200c\u200d\u200e\u200f"  # ZWNJ, ZWJ, LRM, RLM
+    "\u202a\u202b\u202c\u202d\u202e"  # LRE, RLE, PDF, LRO, RLO
+    "\u2066\u2067\u2068\u2069"  # LRI, RLI, FSI, PDI
+)
+_BIDI_STRIP_RE = regex.compile(f"[{_BIDI_STRIP_CHARS}]")
+_ZWSP = "\u200b"
+_PRES_FORMS_RE = regex.compile(r"[\uFB50-\uFDFF\uFE70-\uFEFF]")
 
 
 @register
@@ -40,6 +50,30 @@ class RestoreProtectedWords(NormalizationRule):
         mapping = context.get("_protected_map", {})
         for placeholder, token in mapping.items():
             text = text.replace(placeholder, token)
+        return text
+
+
+@register
+class ArabicPresentationForms(NormalizationRule):
+    """Fold Arabic Presentation Forms (U+FB50-FDFF, U+FE70-FEFF) to the base
+    Arabic block (U+0600-06FF) via NFKC, expanding LAM-ALEF ligatures. Also
+    strips bidi/zero-width formatting controls commonly leaked from PDFs."""
+    name = "ar_presentation_forms"
+    sides = (Side.SOURCE,)
+    order = 15
+
+    def apply(self, text: str, side: Side, context: dict) -> str:
+        if _BIDI_STRIP_RE.search(text):
+            text = _BIDI_STRIP_RE.sub("", text)
+        if _ZWSP in text:
+            text = text.replace(_ZWSP, " ")
+        if _PRES_FORMS_RE.search(text):
+            text = _PRES_FORMS_RE.sub(
+                lambda m: unicodedata.normalize("NFKC", m.group(0)), text
+            )
+        # Compose decomposed hamza sequences left by some encoders.
+        text = text.replace("\u0627\u0655", "\u0625")  # ا + ٕ → إ
+        text = text.replace("\u0627\u0654", "\u0623")  # ا + ٔ → أ
         return text
 
 

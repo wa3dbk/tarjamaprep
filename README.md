@@ -162,6 +162,7 @@ tarjamaprep clean SOURCE TARGET -os OUTPUT_SOURCE -ot OUTPUT_TARGET [OPTIONS]
 | `--ignore-punct-match` | Shortcut: disable the `punct_match` filter (useful when the pipeline's terminal-punctuation alignment is enough) |
 | `--ignore-currency-percent` | Shortcut: disable the `currency_percent_check` filter |
 | `--ignore-non-lang` | Shortcut: disable the `non_lang` filter (useful for short Arabic words like `آ`) |
+| `--ignore-foreign-arabic` | Shortcut: disable the `foreign_arabic` filter (keep pairs with Persian/Urdu/Sindhi letters) |
 | `--permissive` | Enable all of the `--ignore-*` flags above. Intended for verified corpora where strict filtering drops legitimate pairs. |
 | `--report / --no-report` | Print a final report table (totals + drop reasons). Default: **on**. |
 
@@ -290,10 +291,11 @@ Rules are applied in order (lower = runs first):
 |------|-------|------|-------------|
 | `common_special_tokens` | 5 | both | Strip configured special tokens (`<unk>`, `{noise}`, `%breath`, `%pwm`, `%pw` by default; extend via `--removal-token` or YAML `removal_tokens`). Also drops the leading `%` from any remaining `%word` token (`%yeah` → `yeah`). |
 | `ar_protected` | 10 | both | Protect configured tokens (`protected_words`) from modification. Empty by default. |
+| `ar_presentation_forms` | 15 | source | Fold Arabic Presentation Forms (`U+FB50-FDFF`, `U+FE70-FEFF`) to the base Arabic block via NFKC, expanding LAM-ALEF ligatures (`ﻻ` → `لا`, `ﻷ` → `لأ`). Also strips bidi/zero-width formatting controls (LRM/RLM/LRE/RLE/PDF/LRO/RLO/LRI/RLI/FSI/PDI/ZWNJ/ZWJ) and converts ZWSP to space. Composes decomposed hamza sequences (`ا` + `ٔ` → `أ`). |
 | `ar_ta_marbuta` | 20 | source | Split concatenated words at ta marbuta: `الحلقةالأولى` → `الحلقة الأولى` |
 | `lat_whitespace` | 20 | target | Normalize unicode whitespace |
 | `ar_waw_collate` | 30 | source | Collate standalone و to next word: `و قال` → `وقال` |
-| `ar_char_norm` | 40 | source | Normalize characters via configurable mapping (e.g., `ݢ` → `گ`) |
+| `ar_char_norm` | 40 | source | Normalize characters via `char_norm_map`. Built-in defaults: `ݢ` → `گ`, `چ` → `ج`. Extendable via YAML. |
 | `ar_punctuation` | 50 | source | Convert to Arabic punctuation: `;` → `؛`, `?` → `؟`, `,` → `،` (commas between digits are left alone so thousands separators survive) |
 | `common_emoji` | 60 | both | Remove all emoji characters |
 | `common_symbols` | 65 | both | Remove decorative symbols (★, ♦, ©, ™, etc.) |
@@ -322,6 +324,7 @@ In addition to per-side rules, after normalization the pipeline runs a **pair-le
 | `number_check` | Drop if digit sequences differ between source/target | — |
 | `currency_percent_check` | Drop if the target has `%`, `$`, or `€` next to a digit but the Arabic source lacks the symbol **and** its word equivalent (`%` ↔ `بالمية / بالمائة / بالميا / مائوية`, `$` ↔ `دولار / دولارات`, `€` ↔ `أورو / يورو`) | — |
 | `non_lang` | Drop if majority of characters are non-language script (punctuation is treated as language-neutral, so short Arabic words like `آ . .` pass) | threshold: 0.5 |
+| `foreign_arabic` | Drop pairs whose source contains Persian/Urdu/Sindhi letters (`ڑ ں ھ ک ی`). These stay in the U+06xx block but aren't standard Arabic. | — |
 | `oov_filter` | Drop if too many out-of-vocabulary words | `--oov-wordlist`, `--max-oov-ratio` |
 
 ---

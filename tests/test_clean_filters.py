@@ -3,6 +3,7 @@ from __future__ import annotations
 from tarjamaprep.clean.filters import (
     CurrencyPercentConsistencyFilter,
     EmptyLineFilter,
+    ForeignArabicCharsFilter,
     WordCountRatioFilter,
     PunctuationMatchFilter,
     NumberConsistencyFilter,
@@ -10,6 +11,27 @@ from tarjamaprep.clean.filters import (
     OOVFilter,
 )
 from tarjamaprep.types import SentencePair
+
+
+def test_foreign_arabic_drops_persian_yeh():
+    f = ForeignArabicCharsFilter()
+    reason = f.should_drop(SentencePair("کتابی جمیل", "A beautiful book", 1))
+    assert reason is not None
+    assert reason.startswith("foreign_arabic:")
+    assert "ک" in reason and "ی" in reason
+
+
+def test_foreign_arabic_drops_urdu_variants():
+    f = ForeignArabicCharsFilter()
+    for ch in ["ڑ", "ں", "ھ"]:
+        reason = f.should_drop(SentencePair(f"نص فيه {ch} حرف", "text with letter", 1))
+        assert reason is not None, f"should drop pair containing {ch}"
+        assert ch in reason
+
+
+def test_foreign_arabic_keeps_pure_arabic():
+    f = ForeignArabicCharsFilter()
+    assert f.should_drop(SentencePair("كتاب جميل", "A beautiful book", 1)) is None
 
 
 def _pair(src, tgt, line=1):

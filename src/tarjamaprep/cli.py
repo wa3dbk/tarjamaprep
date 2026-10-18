@@ -113,6 +113,8 @@ def normalize(source, target, output_source, output_target, target_lang,
 @click.option("--ignore-currency-percent", is_flag=True,
               help="Disable currency_percent_check filter.")
 @click.option("--ignore-non-lang", is_flag=True, help="Disable non_lang filter.")
+@click.option("--ignore-foreign-arabic", is_flag=True,
+              help="Disable foreign_arabic filter (keep pairs with Persian/Urdu letters).")
 @click.option("--permissive", is_flag=True,
               help="Shortcut: enable all --ignore-* flags for internal/verified data.")
 @click.option("--report/--no-report", default=True,
@@ -121,12 +123,13 @@ def clean(source, target, output_source, output_target, target_lang,
           config_path, workers, max_ratio, max_oov_ratio, oov_wordlist,
           reject_log, disable_filter, ignore_word_ratio, ignore_number_check,
           ignore_punct_match, ignore_currency_percent, ignore_non_lang,
-          permissive, report):
+          ignore_foreign_arabic, permissive, report):
     """Clean parallel corpus by filtering sentence pairs."""
     disabled = set(disable_filter)
     if permissive:
         ignore_word_ratio = ignore_number_check = True
         ignore_punct_match = ignore_currency_percent = ignore_non_lang = True
+        ignore_foreign_arabic = True
     if ignore_word_ratio:
         disabled.add("word_ratio")
     if ignore_number_check:
@@ -137,6 +140,8 @@ def clean(source, target, output_source, output_target, target_lang,
         disabled.add("currency_percent_check")
     if ignore_non_lang:
         disabled.add("non_lang")
+    if ignore_foreign_arabic:
+        disabled.add("foreign_arabic")
 
     cfg = load_config(
         config_path,

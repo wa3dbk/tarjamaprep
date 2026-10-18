@@ -10,6 +10,7 @@ from tarjamaprep.types import TargetLang
 _DEFAULT_PROTECTED: list[str] = []
 _DEFAULT_CHAR_MAP = {
     "\u0762": "\u06AF",  # ݢ -> گ
+    "\u0686": "\u062C",  # چ (tcheh) -> ج (jeem)
 }
 _DEFAULT_REMOVAL_TOKENS = ["<unk>", "{noise}", "%breath", "%pwm", "%pw"]
 
