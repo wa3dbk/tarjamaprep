@@ -271,6 +271,8 @@ def run_augment(
     names_file: str | None = None,
     entities_file: str | None = None,
     codeswitching_file: str | None = None,
+    strip_punct_ratio: float | None = None,
+    dialect_shift_ratio: float | None = None,
 ) -> AugStats:
     import random as random_mod
     from tarjamaprep.augment import get_strategies
@@ -294,6 +296,10 @@ def run_augment(
             s._custom_locations_path = entities_file
         if hasattr(s, "arabize_ratio"):
             s.arabize_ratio = arabize_ratio
+        if s.name == "ar_strip_punct" and strip_punct_ratio is not None:
+            s.sample_rate = strip_punct_ratio
+        if s.name == "ar_dialect_shift" and dialect_shift_ratio is not None:
+            s.sample_rate = dialect_shift_ratio
 
     output_pairs = []
     for pair in pairs:

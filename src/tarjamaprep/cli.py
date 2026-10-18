@@ -188,9 +188,14 @@ def clean(source, target, output_source, output_target, target_lang,
               help="Custom entities YAML file (orgs + products).")
 @click.option("--codeswitching-file", type=click.Path(exists=True), default=None,
               help="Custom code-switching phrases YAML file.")
+@click.option("--strip-punct-ratio", type=float, default=None,
+              help="Sampling ratio for ar_strip_punct strategy (default: 0.4).")
+@click.option("--dialect-shift-ratio", type=float, default=None,
+              help="Sampling ratio for ar_dialect_shift strategy (default: 0.3).")
 def augment(source, target, output_source, output_target, target_lang,
             config_path, workers, strategies, count, seed, include_original,
-            arabize_ratio, names_file, entities_file, codeswitching_file):
+            arabize_ratio, names_file, entities_file, codeswitching_file,
+            strip_punct_ratio, dialect_shift_ratio):
     """Augment parallel corpus with synthetic sentence pairs."""
     cfg = load_config(
         config_path,
@@ -209,6 +214,8 @@ def augment(source, target, output_source, output_target, target_lang,
         names_file=names_file,
         entities_file=entities_file,
         codeswitching_file=codeswitching_file,
+        strip_punct_ratio=strip_punct_ratio,
+        dialect_shift_ratio=dialect_shift_ratio,
     )
 
     click.echo(f"Augmented {stats.total_input} → {stats.total_output} pairs "

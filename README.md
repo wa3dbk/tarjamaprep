@@ -233,7 +233,7 @@ tarjamaprep augment SOURCE TARGET -os OUTPUT_SOURCE -ot OUTPUT_TARGET [OPTIONS]
 | `-os`, `--output-source` | Output path for augmented source (required) |
 | `-ot`, `--output-target` | Output path for augmented target (required) |
 | `-l`, `--target-lang` | Target language (default: `en`) |
-| `--strategy` | Strategy to apply (repeatable; default: all). Values: `names`, `codeswitching`, `entities` |
+| `--strategy` | Strategy to apply (repeatable; default: all). Values: `names`, `codeswitching`, `entities`, `ar_strip_punct`, `ar_dialect_shift` |
 | `--count` | Number of augmented variants per pair per strategy (default: 1) |
 | `--seed` | Random seed for reproducibility |
 | `--include-original/--no-original` | Include original pairs in output (default: yes) |
@@ -241,6 +241,8 @@ tarjamaprep augment SOURCE TARGET -os OUTPUT_SOURCE -ot OUTPUT_TARGET [OPTIONS]
 | `--names-file` | Custom names YAML file |
 | `--entities-file` | Custom entities YAML file |
 | `--codeswitching-file` | Custom code-switching YAML file |
+| `--strip-punct-ratio` | Sampling ratio for `ar_strip_punct` (0.0-1.0, default: 0.4) |
+| `--dialect-shift-ratio` | Sampling ratio for `ar_dialect_shift` (0.0-1.0, default: 0.3) |
 | `-w`, `--workers` | Number of parallel workers (default: 1) |
 
 **Examples:**
@@ -348,6 +350,24 @@ Replaces named entities (locations, organizations, products) in **both** source 
 ```
 Input:  AR: سافر خالد إلى نيويورك    EN: Khaled traveled to New York
 Output: AR: سافر خالد إلى باريس     EN: Khaled traveled to Paris
+```
+
+### `ar_strip_punct` — Arabic-side Punctuation Stripping
+
+Emits a duplicate pair with Arabic-side punctuation removed (whitespace collapsed); the target is kept intact. Samples a random fraction of input pairs (default 40%, override with `--strip-punct-ratio`). Pairs where the Arabic side has no punctuation to strip are skipped (no no-op duplicates).
+
+```
+Input:  AR: القهوة لذيذة ، أليس كذلك ؟   EN: Coffee is tasty, isn't it?
+Output: AR: القهوة لذيذة أليس كذلك       EN: Coffee is tasty, isn't it?
+```
+
+### `ar_dialect_shift` — Arabic ASR / Dialect Flattening
+
+Emits a duplicate pair with the Arabic side rewritten using common ASR/dialect flattenings: hamza drop (`أ إ آ` → `ا`), ta marbuta → ha (`ة` → `ه`), final ya → alif maksura (`...ي` → `...ى`), and emphatic consonant simplification (`ظ`→`ض`, `ذ`→`د`, `ث`→`ت`). Samples a random fraction of input pairs (default 30%, override with `--dialect-shift-ratio`). Pairs whose Arabic side contains none of these targets are skipped.
+
+```
+Input:  AR: أذهب إلى المدرسة الكبيرة   EN: I go to the big school
+Output: AR: ادهب الى المدرسه الكبيره   EN: I go to the big school
 ```
 
 ---
