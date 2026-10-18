@@ -16,6 +16,7 @@ def _make_context(config: AranormConfig) -> dict:
         "_config_protected_words": config.protected_words,
         "_config_char_norm_map": config.char_norm_map,
         "_config_removal_tokens": config.removal_tokens,
+        "_config_extra_punct_keep": config.extra_punct_keep,
         "_config_target_lang": config.target_lang,
     }
 
@@ -51,7 +52,8 @@ def align_terminal_punct(pair: SentencePair) -> SentencePair:
 
 def _normalize_batch(args: tuple) -> list[SentencePair]:
     """Normalize a batch of pairs. Accepts tuple for pickling."""
-    pairs, disabled_rules, protected_words, char_norm_map, removal_tokens = args
+    (pairs, disabled_rules, protected_words, char_norm_map,
+     removal_tokens, extra_punct_keep) = args
     from tarjamaprep.normalize import get_rules, apply_rules
     from tarjamaprep.types import Side
 
@@ -63,6 +65,7 @@ def _normalize_batch(args: tuple) -> list[SentencePair]:
             "_config_protected_words": protected_words,
             "_config_char_norm_map": char_norm_map,
             "_config_removal_tokens": removal_tokens,
+            "_config_extra_punct_keep": extra_punct_keep,
         }
         pair.source = apply_rules(pair.source, Side.SOURCE, all_rules, context)
         pair.target = apply_rules(pair.target, Side.TARGET, all_rules, context)
@@ -95,6 +98,7 @@ def run_normalize(
                 config.protected_words,
                 config.char_norm_map,
                 config.removal_tokens,
+                config.extra_punct_keep,
             ))
 
         with mp.Pool(config.num_workers) as pool:

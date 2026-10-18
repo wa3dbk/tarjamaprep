@@ -140,16 +140,46 @@ def test_numeral_conversion_persian():
 def test_punctuation_normalization():
     rule = PunctuationNormalization()
     ctx = {}
-    assert rule.apply("«hello»", Side.TARGET, ctx) == '"hello"'
+    # Curly quotes map to straight " first, then " is stripped by default.
+    assert rule.apply("«hello»", Side.TARGET, ctx) == "hello"
     assert rule.apply("text (with) [brackets]", Side.TARGET, ctx) == "text with brackets"
+
+
+def test_punctuation_normalization_strips_semicolon_colon_quote_by_default():
+    rule = PunctuationNormalization()
+    ctx = {}
+    assert rule.apply("hello; world: \"ok\"", Side.TARGET, ctx) == "hello world ok"
+
+
+def test_punctuation_normalization_keeps_opted_in_marks():
+    rule = PunctuationNormalization()
+    ctx = {"_config_extra_punct_keep": [";", ":", "\""]}
+    assert rule.apply("hello; world: \"ok\"", Side.TARGET, ctx) == "hello; world: \"ok\""
+
+
+def test_punctuation_normalization_keeps_only_selected_marks():
+    rule = PunctuationNormalization()
+    ctx = {"_config_extra_punct_keep": [";"]}
+    assert rule.apply("a; b: \"c\"", Side.TARGET, ctx) == "a; b c"
 
 
 def test_final_char_filter():
     rule = FinalCharFilter()
     ctx = {}
-    # Should keep Arabic, Latin, digits, basic punct
+    # Basic punct kept, ; and : stripped by default (not in base allowed set).
     result = rule.apply("hello مرحبا 123 .,!?", Side.SOURCE, ctx)
     assert result == "hello مرحبا 123 .,!?"
-    # Should strip weird symbols
     result = rule.apply("hello ★ world", Side.TARGET, ctx)
     assert result == "hello world"
+
+
+def test_final_char_filter_strips_semicolon_colon_quote_by_default():
+    rule = FinalCharFilter()
+    ctx = {}
+    assert rule.apply("a; b: \"c\"", Side.TARGET, ctx) == "a b c"
+
+
+def test_final_char_filter_keeps_opted_in_marks():
+    rule = FinalCharFilter()
+    ctx = {"_config_extra_punct_keep": [";", ":", "\""]}
+    assert rule.apply("a; b: \"c\"", Side.TARGET, ctx) == "a; b: \"c\""

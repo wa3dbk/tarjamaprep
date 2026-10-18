@@ -35,8 +35,15 @@ def cli():
 @click.option("--removal-token", "removal_tokens", multiple=True,
               help="Extra special token to strip during normalization. "
                    "Repeat to add multiple. Added on top of the defaults.")
+@click.option("--keep-punct", "keep_puncts", multiple=True,
+              type=click.Choice([";", ":", "\""]),
+              help="Keep this punctuation mark in the output (default: "
+                   "stripped like {}[]). Repeat for multiple.")
+@click.option("--broad-punct", is_flag=True,
+              help="Shortcut: keep all of ; : \" in the output.")
 def normalize(source, target, output_source, output_target, target_lang,
-              side, config_path, workers, disable_rule, removal_tokens):
+              side, config_path, workers, disable_rule, removal_tokens,
+              keep_puncts, broad_punct):
     """Normalize parallel source/target files, or a single file.
 
     In parallel mode (two input files): normalizes both source and target.
@@ -51,6 +58,12 @@ def normalize(source, target, output_source, output_target, target_lang,
     )
     if removal_tokens:
         cfg.removal_tokens = list(cfg.removal_tokens) + list(removal_tokens)
+
+    keep = set(keep_puncts)
+    if broad_punct:
+        keep |= {";", ":", "\""}
+    if keep:
+        cfg.extra_punct_keep = sorted(keep)
 
     if target is None:
         # Single-file mode

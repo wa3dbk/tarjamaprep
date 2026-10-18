@@ -96,6 +96,8 @@ tarjamaprep normalize SOURCE -os OUTPUT [OPTIONS]
 | `-w`, `--workers` | Number of parallel workers (default: 1) |
 | `--disable-rule` | Disable a specific rule by name (repeatable) |
 | `--removal-token` | Extra special token to strip (repeatable). Added on top of the defaults (`<unk>`, `{noise}`, `%breath`, `%pwm`, `%pw`). The `common_special_tokens` rule also strips the `%` prefix from any remaining `%word` token. |
+| `--keep-punct` | Keep a mark (`;`, `:`, or `"`) that is otherwise stripped by default. Repeatable. |
+| `--broad-punct` | Shortcut: keep all three of `; : "` in the output. |
 
 **Examples:**
 
@@ -299,7 +301,7 @@ Rules are applied in order (lower = runs first):
 
 In addition to per-side rules, after normalization the pipeline runs a **pair-level terminal-punctuation alignment** step: if one side ends with `. ! ?` (or Arabic `؟`) and the other does not, the mark is copied to the missing side (`?` ↔ `؟` is mapped between Latin and Arabic). This keeps speech-transcript Arabic (which often lacks `.?!`) from being dropped by the `punct_match` filter.
 
-**Allowed characters after normalization:** Arabic, Latin, Cyrillic, CJK, digits, currency symbols ($, €, £, ¥, ₹, ₽, ¢), %, °, and basic punctuation (`. , ; : ? ! " ' -`). Arabic punctuation (`، ؛ ؟`) is preserved on the source side.
+**Allowed characters after normalization (default):** Arabic, Latin, Cyrillic, CJK, digits, currency symbols ($, €, £, ¥, ₹, ₽, ¢), %, °, and the core ASCII punctuation set `. , ? ! ' -`. Arabic punctuation (`، ؛ ؟`) is preserved on the source side. The marks `;`, `:`, and `"` are **stripped by default** (same treatment as `{}[]()`) — opt back in per-mark with `--keep-punct` or all three with `--broad-punct`.
 
 ---
 
@@ -373,6 +375,10 @@ removal_tokens:
   - "%pwm"
   - "%pw"
   - "<laughter>"
+# Extra punctuation marks the user wants to keep in the output. By default
+# the marks ; : " are stripped (same as {}[]). Add any subset here, or
+# leave the list empty to drop all three.
+extra_punct_keep: []
 # Protected words are kept verbatim through normalization. Empty by default
 # — anything you used to protect here (e.g. %pw) is now stripped via
 # removal_tokens instead.

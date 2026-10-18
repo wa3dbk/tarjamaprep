@@ -23,6 +23,10 @@ class AranormConfig:
     char_norm_map: dict[str, str] = field(default_factory=lambda: dict(_DEFAULT_CHAR_MAP))
     protected_words: list[str] = field(default_factory=lambda: list(_DEFAULT_PROTECTED))
     removal_tokens: list[str] = field(default_factory=lambda: list(_DEFAULT_REMOVAL_TOKENS))
+    # Narrow set of extra punctuation (;, :, ") the user wants to keep. By
+    # default these three characters are stripped by PunctuationNormalization
+    # and dropped by FinalCharFilter — same treatment as {}[]().
+    extra_punct_keep: list[str] = field(default_factory=list)
     # clean
     max_word_ratio: float = 3.0
     max_oov_ratio: float = 0.3
@@ -51,6 +55,8 @@ def load_config(config_path: str | None = None, **overrides) -> AranormConfig:
         cfg.protected_words = data["protected_words"]
     if "removal_tokens" in data:
         cfg.removal_tokens = data["removal_tokens"]
+    if "extra_punct_keep" in data:
+        cfg.extra_punct_keep = list(data["extra_punct_keep"])
     if "max_word_ratio" in data:
         cfg.max_word_ratio = data["max_word_ratio"]
     if "max_oov_ratio" in data:

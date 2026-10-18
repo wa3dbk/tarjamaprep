@@ -1,10 +1,39 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 import regex
 
 from tarjamaprep.normalize.base import NormalizationRule
 from tarjamaprep.normalize.registry import register
 from tarjamaprep.types import Side
+
+
+_DEFAULT_EXTRA_PUNCT_STRIP = frozenset(';:"')
+
+
+@lru_cache(maxsize=16)
+def _extra_strip_pattern(chars: str):
+    if not chars:
+        return None
+    return regex.compile(f"[{regex.escape(chars)}]")
+
+
+@lru_cache(maxsize=16)
+def _final_char_pattern(keep_chars: str):
+    # Base allowed set: scripts, digits, whitespace, currency, %, °, hyphens,
+    # core punctuation (. , ? ! ' ), Arabic punct, placeholder marker.
+    # ; : " are intentionally NOT in the base set — they are opt-in via
+    # keep_chars (comes from AranormConfig.extra_punct_keep).
+    return regex.compile(
+        r"[^\p{Arabic}\p{Latin}\p{Cyrillic}\p{Han}\p{Hiragana}\p{Katakana}\d\s"
+        r"$€£¥₹₽¢%°"
+        r".,?!'\-"
+        r"\u060C\u061B\u061F"  # ، ؛ ؟
+        r"\x00"
+        + (regex.escape(keep_chars) if keep_chars else "")
+        + r"]"
+    )
 
 
 @register
@@ -124,7 +153,13 @@ class NumeralConversion(NormalizationRule):
 
 @register
 class PunctuationNormalization(NormalizationRule):
-    """Normalize quotes and drop brackets/parentheses."""
+    """Normalize quotes, drop brackets, and strip ; : " by default.
+
+    Curly/typographic quotes are collapsed to straight `"` and `'`. Brackets
+    `[](){}` are always removed. The three ASCII marks ; : " are also
+    stripped by default — opt out per-mark via `extra_punct_keep` on the
+    config (`--keep-punct`/`--broad-punct` on the CLI).
+    """
     name = "common_punctuation"
     sides = (Side.SOURCE, Side.TARGET)
     order = 80
@@ -142,14 +177,19 @@ class PunctuationNormalization(NormalizationRule):
         "\u0060": "'",  # `
         "\u00B4": "'",  # ´
     }
+    _bracket_pattern = regex.compile(r"[\[\](){}]")
+    _dash_pattern = regex.compile(r"[\u2013\u2014\u2015\u2212]")
 
     def apply(self, text: str, side: Side, context: dict) -> str:
         for src, dst in self._quote_map.items():
             text = text.replace(src, dst)
-        # Drop brackets, parentheses, braces (but not protected words)
-        text = regex.sub(r"[\[\](){}]", "", text)
-        # Normalize dashes to simple hyphen
-        text = regex.sub(r"[\u2013\u2014\u2015\u2212]", "-", text)
+        text = self._bracket_pattern.sub("", text)
+        keep = frozenset(context.get("_config_extra_punct_keep") or ())
+        strip = _DEFAULT_EXTRA_PUNCT_STRIP - keep
+        pat = _extra_strip_pattern("".join(sorted(strip)))
+        if pat is not None:
+            text = pat.sub("", text)
+        text = self._dash_pattern.sub("-", text)
         return text
 
 
@@ -195,28 +235,25 @@ class WhitespaceNormalization(NormalizationRule):
 class FinalCharFilter(NormalizationRule):
     """Strip any character not in the allowed set.
 
-    Allowed: Arabic script, Latin script, digits, currency symbols,
-    %, °, and basic punctuation (. , ; : ? ! " ' -).
-    Arabic-specific punctuation (، ؛ ؟) is also allowed.
-    Protected word placeholders are preserved (handled by restore rule at order=999).
+    Allowed by default: Arabic / Latin / Cyrillic / CJK script, digits,
+    currency symbols, %, °, hyphens, Arabic punctuation (، ؛ ؟), and the
+    core ASCII punctuation set (. , ? ! ' ).
+
+    The marks ; : " are NOT allowed by default. Pass them via
+    `extra_punct_keep` (`--keep-punct`/`--broad-punct` on the CLI) to
+    retain them.
+
+    Protected word placeholders are preserved (handled by restore rule
+    at order=999).
     """
     name = "common_final_filter"
     sides = (Side.SOURCE, Side.TARGET)
     order = 200
 
-    # Keep: Arabic, Latin, Cyrillic, CJK, digits, spaces, currency, %, °,
-    # basic punct, Arabic punct, hyphens, protected placeholders
-    _pattern = regex.compile(
-        r"[^\p{Arabic}\p{Latin}\p{Cyrillic}\p{Han}\p{Hiragana}\p{Katakana}\d\s"
-        r"$€£¥₹₽¢%°"
-        r".,;:?!\"'\-"
-        r"\u060C\u061B\u061F"  # ، ؛ ؟
-        r"\x00"  # placeholder delimiter
-        r"]"
-    )
-
     def apply(self, text: str, side: Side, context: dict) -> str:
-        text = self._pattern.sub("", text)
-        # Clean up any resulting multiple spaces
+        keep = context.get("_config_extra_punct_keep") or ()
+        keep_key = "".join(sorted(set(keep)))
+        pattern = _final_char_pattern(keep_key)
+        text = pattern.sub("", text)
         text = regex.sub(r" {2,}", " ", text)
         return text.strip()
