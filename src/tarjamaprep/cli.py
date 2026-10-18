@@ -32,8 +32,11 @@ def cli():
 @click.option("-c", "--config", "config_path", type=click.Path(exists=True), default=None)
 @click.option("-w", "--workers", type=int, default=1, help="Number of parallel workers.")
 @click.option("--disable-rule", multiple=True, help="Disable rule(s) by name.")
+@click.option("--removal-token", "removal_tokens", multiple=True,
+              help="Extra special token to strip during normalization. "
+                   "Repeat to add multiple. Added on top of the defaults.")
 def normalize(source, target, output_source, output_target, target_lang,
-              side, config_path, workers, disable_rule):
+              side, config_path, workers, disable_rule, removal_tokens):
     """Normalize parallel source/target files, or a single file.
 
     In parallel mode (two input files): normalizes both source and target.
@@ -46,6 +49,8 @@ def normalize(source, target, output_source, output_target, target_lang,
         num_workers=workers,
         disabled_rules=set(disable_rule) if disable_rule else None,
     )
+    if removal_tokens:
+        cfg.removal_tokens = list(cfg.removal_tokens) + list(removal_tokens)
 
     if target is None:
         # Single-file mode
@@ -89,10 +94,34 @@ def normalize(source, target, output_source, output_target, target_lang,
 @click.option("--reject-log", type=click.Path(path_type=Path), default=None,
               help="Write rejected pairs info to this file.")
 @click.option("--disable-filter", multiple=True, help="Disable filter(s) by name.")
+@click.option("--ignore-word-ratio", is_flag=True, help="Disable word_ratio filter.")
+@click.option("--ignore-number-check", is_flag=True, help="Disable number_check filter.")
+@click.option("--ignore-punct-match", is_flag=True, help="Disable punct_match filter.")
+@click.option("--ignore-currency-percent", is_flag=True,
+              help="Disable currency_percent_check filter.")
+@click.option("--ignore-non-lang", is_flag=True, help="Disable non_lang filter.")
+@click.option("--permissive", is_flag=True,
+              help="Shortcut: enable all --ignore-* flags for internal/verified data.")
 def clean(source, target, output_source, output_target, target_lang,
           config_path, workers, max_ratio, max_oov_ratio, oov_wordlist,
-          reject_log, disable_filter):
+          reject_log, disable_filter, ignore_word_ratio, ignore_number_check,
+          ignore_punct_match, ignore_currency_percent, ignore_non_lang, permissive):
     """Clean parallel corpus by filtering sentence pairs."""
+    disabled = set(disable_filter)
+    if permissive:
+        ignore_word_ratio = ignore_number_check = True
+        ignore_punct_match = ignore_currency_percent = ignore_non_lang = True
+    if ignore_word_ratio:
+        disabled.add("word_ratio")
+    if ignore_number_check:
+        disabled.add("number_check")
+    if ignore_punct_match:
+        disabled.add("punct_match")
+    if ignore_currency_percent:
+        disabled.add("currency_percent_check")
+    if ignore_non_lang:
+        disabled.add("non_lang")
+
     cfg = load_config(
         config_path,
         target_lang=TargetLang(target_lang),
@@ -100,7 +129,7 @@ def clean(source, target, output_source, output_target, target_lang,
         max_word_ratio=max_ratio,
         max_oov_ratio=max_oov_ratio,
         oov_wordlist_path=oov_wordlist,
-        disabled_filters=set(disable_filter) if disable_filter else None,
+        disabled_filters=disabled if disabled else None,
     )
 
     from tarjamaprep.pipeline import run_clean

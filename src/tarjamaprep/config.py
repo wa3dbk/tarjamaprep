@@ -7,10 +7,11 @@ import yaml
 
 from tarjamaprep.types import TargetLang
 
-_DEFAULT_PROTECTED = ["%pw", "%breath", "{noise}"]
+_DEFAULT_PROTECTED: list[str] = []
 _DEFAULT_CHAR_MAP = {
     "\u0762": "\u06AF",  # ݢ -> گ
 }
+_DEFAULT_REMOVAL_TOKENS = ["<unk>", "{noise}", "%breath", "%pwm", "%pw"]
 
 
 @dataclass
@@ -21,6 +22,7 @@ class AranormConfig:
     disabled_rules: set[str] = field(default_factory=set)
     char_norm_map: dict[str, str] = field(default_factory=lambda: dict(_DEFAULT_CHAR_MAP))
     protected_words: list[str] = field(default_factory=lambda: list(_DEFAULT_PROTECTED))
+    removal_tokens: list[str] = field(default_factory=lambda: list(_DEFAULT_REMOVAL_TOKENS))
     # clean
     max_word_ratio: float = 3.0
     max_oov_ratio: float = 0.3
@@ -47,6 +49,8 @@ def load_config(config_path: str | None = None, **overrides) -> AranormConfig:
         cfg.char_norm_map.update(data["char_norm_map"])
     if "protected_words" in data:
         cfg.protected_words = data["protected_words"]
+    if "removal_tokens" in data:
+        cfg.removal_tokens = data["removal_tokens"]
     if "max_word_ratio" in data:
         cfg.max_word_ratio = data["max_word_ratio"]
     if "max_oov_ratio" in data:

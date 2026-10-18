@@ -121,7 +121,9 @@ class NonLanguageFilter(CleaningFilter):
     order = 40
     max_non_lang_ratio: float = 0.5
 
-    _lang_pattern = regex.compile(r"[\p{Arabic}\p{Latin}\p{Cyrillic}\p{Han}\p{Hiragana}\p{Katakana}\d\s]")
+    _lang_pattern = regex.compile(
+        r"[\p{Arabic}\p{Latin}\p{Cyrillic}\p{Han}\p{Hiragana}\p{Katakana}\d\s\p{P}]"
+    )
 
     def should_drop(self, pair: SentencePair) -> str | None:
         for text, label in [(pair.source, "source"), (pair.target, "target")]:

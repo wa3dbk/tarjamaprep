@@ -15,18 +15,46 @@ def _make_context(config: AranormConfig) -> dict:
     return {
         "_config_protected_words": config.protected_words,
         "_config_char_norm_map": config.char_norm_map,
+        "_config_removal_tokens": config.removal_tokens,
         "_config_target_lang": config.target_lang,
     }
 
 
+_TERM_SRC = {".", "!", "?", "\u061F"}  # . ! ? ؟
+_TERM_TGT = {".", "!", "?"}
+
+
+def _trailing_terminal(text: str, allowed: set[str]) -> str | None:
+    stripped = text.rstrip()
+    if not stripped:
+        return None
+    return stripped[-1] if stripped[-1] in allowed else None
+
+
+def align_terminal_punct(pair: SentencePair) -> SentencePair:
+    """Append matching terminal punctuation to the side that lacks it.
+
+    Speech-transcript Arabic sources often omit final . ! ? while their
+    English translations keep them. This bridges that gap so the pair is
+    not later dropped by PunctuationMatchFilter.
+    """
+    src_term = _trailing_terminal(pair.source, _TERM_SRC)
+    tgt_term = _trailing_terminal(pair.target, _TERM_TGT)
+    if src_term and not tgt_term:
+        add = "?" if src_term == "\u061F" else src_term
+        pair.target = pair.target.rstrip() + add
+    elif tgt_term and not src_term:
+        add = "\u061F" if tgt_term == "?" else tgt_term
+        pair.source = pair.source.rstrip() + add
+    return pair
+
+
 def _normalize_batch(args: tuple) -> list[SentencePair]:
     """Normalize a batch of pairs. Accepts tuple for pickling."""
-    pairs, disabled_rules, protected_words, char_norm_map = args
+    pairs, disabled_rules, protected_words, char_norm_map, removal_tokens = args
     from tarjamaprep.normalize import get_rules, apply_rules
     from tarjamaprep.types import Side
 
-    src_rules = get_rules(side=Side.SOURCE, exclude=disabled_rules)
-    tgt_rules = get_rules(side=Side.TARGET, exclude=disabled_rules)
     all_rules = get_rules(exclude=disabled_rules)
 
     results = []
@@ -34,9 +62,11 @@ def _normalize_batch(args: tuple) -> list[SentencePair]:
         context = {
             "_config_protected_words": protected_words,
             "_config_char_norm_map": char_norm_map,
+            "_config_removal_tokens": removal_tokens,
         }
         pair.source = apply_rules(pair.source, Side.SOURCE, all_rules, context)
         pair.target = apply_rules(pair.target, Side.TARGET, all_rules, context)
+        align_terminal_punct(pair)
         results.append(pair)
     return results
 
@@ -64,6 +94,7 @@ def run_normalize(
                 config.disabled_rules,
                 config.protected_words,
                 config.char_norm_map,
+                config.removal_tokens,
             ))
 
         with mp.Pool(config.num_workers) as pool:
@@ -78,6 +109,7 @@ def run_normalize(
             context = _make_context(config)
             pair.source = apply_rules(pair.source, Side.SOURCE, rules, context)
             pair.target = apply_rules(pair.target, Side.TARGET, rules, context)
+            align_terminal_punct(pair)
 
     stats.processed = write_parallel(pairs, output_source, output_target)
     stats.elapsed_seconds = time.time() - start

@@ -72,6 +72,13 @@ def test_non_language_filter():
     assert f.should_drop(_pair("★★★★★★★★", "hello")) is not None
 
 
+def test_non_language_filter_accepts_punctuation():
+    f = NonLanguageFilter()
+    f.max_non_lang_ratio = 0.5
+    # Short Arabic word surrounded by punctuation should pass
+    assert f.should_drop(_pair("آ . .", "A.")) is None
+
+
 def test_oov_filter():
     f = OOVFilter()
     f.max_oov_ratio = 0.3

@@ -8,6 +8,29 @@ from tarjamaprep.types import Side
 
 
 @register
+class SpecialTokenNormalization(NormalizationRule):
+    """Remove or normalize NMT-corpus special tokens.
+
+    Deletes placeholder markers like <unk>, %pw, %pwm, %breath, {noise}.
+    Other %<word> tokens (e.g. %Yeah) have the leading % stripped so the
+    underlying word is kept rather than discarded by later filters.
+    """
+    name = "common_special_tokens"
+    sides = (Side.SOURCE, Side.TARGET)
+    order = 5
+
+    _percent_word = regex.compile(r"%([A-Za-z]\w*)")
+
+    def apply(self, text: str, side: Side, context: dict) -> str:
+        tokens = context.get("_config_removal_tokens") or []
+        # Sort longest-first so e.g. %pwm matches before %pw.
+        for tok in sorted(tokens, key=len, reverse=True):
+            text = text.replace(tok, " ")
+        text = self._percent_word.sub(r"\1", text)
+        return text
+
+
+@register
 class EmojiRemoval(NormalizationRule):
     """Remove all emoji characters."""
     name = "common_emoji"
@@ -128,6 +151,31 @@ class PunctuationNormalization(NormalizationRule):
         # Normalize dashes to simple hyphen
         text = regex.sub(r"[\u2013\u2014\u2015\u2212]", "-", text)
         return text
+
+
+@register
+class PunctuationCollation(NormalizationRule):
+    """Collapse runs of consecutive punctuation to the first non-'.' mark.
+
+    Examples: "?!?." -> "?", "??" -> "?", "!!," -> "!".
+    A run that is only dots stays a single ".".
+    """
+    name = "common_punct_collapse"
+    sides = (Side.SOURCE, Side.TARGET)
+    order = 85
+
+    _pattern = regex.compile(r"[.!?,\u061F\u060C\u061B]{2,}")
+
+    @staticmethod
+    def _pick(match) -> str:
+        run = match.group(0)
+        for ch in run:
+            if ch != ".":
+                return ch
+        return "."
+
+    def apply(self, text: str, side: Side, context: dict) -> str:
+        return self._pattern.sub(self._pick, text)
 
 
 @register
